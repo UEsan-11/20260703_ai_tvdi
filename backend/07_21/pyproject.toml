@@ -1,0 +1,30 @@
+[project]
+name = "2026-07-03-python-ai-tvdi"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi[standard]",
+    "gradio>=4.0.0",
+    "joblib>=1.5.3",
+    "matplotlib>=3.11.0",
+    "mglearn>=0.2.0",
+    "pydantic>=2.13.4",
+    "scikit-learn>=1.9.0",
+    "scipy>=1.18.0",
+    "uvicorn>=0.51.0",
+    "wget>=3.2",
+    "yfinance>=0.2.61",
+]
+
+[dependency-groups]
+dev = [
+    "basedpyright>=1.39.9",
+    "jupyterlab-lsp>=5.3.0",
+]
+
+
+
+[tool.fastapi]
+entrypoint = "practice4_gradio:app"
