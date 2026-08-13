@@ -1,27 +1,22 @@
-import os, sys
+import os
 import joblib
 import uvicorn
 import pandas as pd
-import numpy as np
 from train_save import train_and_save_model
 from pydantic import BaseModel, Field
-from pprint import pprint
 from fastapi import FastAPI, HTTPException
 
 
-current_dir = os.getcwd()
-if current_dir not in sys.path:
-    sys.path.insert(0, current_dir)
-
-model_path = os.path.join(current_dir, "salary_model.joblib")
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+model_path = os.path.join(BASE_DIR, "salary_model.joblib")
 MODEL_STATE = {}
 
 
 class TrainConfig(BaseModel):
-    test_size: float = Field(0.2, description="測試集分割比例", ge=0.1 , le=0.5)
+    test_size: float = Field(0.2, description="測試集分割比例", ge=0.1, le=0.5)
     random_state: int = Field(76, description="隨機種子", ge=0)
     model_type: str = Field("LinearRegression", description="模型演算法類型 (LinearRegression, Lasso, Ridge)")
-    alpha: float = Field(1.0, description="正則化強度 alpha (適用於 Lasso 與 Ridge)", ge= 0.001, le=100.0)
+    alpha: float = Field(1.0, description="正則化強度 alpha (適用於 Lasso 與 Ridge)", ge=0.001, le=100.0)
 
 class TrainResult(BaseModel):
     status: str = Field(..., description="執行結果狀態")
@@ -32,17 +27,17 @@ class TrainResult(BaseModel):
     model_type: str = Field(..., description="模型演算法類型")
     alpha: float = Field(..., description="正則化強度 alpha")
     train_time: float = Field(..., description="訓練耗時 (秒)")
-    message:str = Field(..., description="提示訊息")
+    message: str = Field(..., description="提示訊息")
 
 class SalaryInput(BaseModel):
     years_experience: float = Field(..., ge=0.0, le=50.0)
-    education_level:str
+    education_level: str
     city: str
 
 class SalaryOutput(BaseModel):
     predicted_salary: float
     estimated_annual_salary: float
-    
+
 
 def load_model_state():
     global MODEL_STATE
@@ -59,7 +54,7 @@ def load_model_state():
             "scaler": model_data["scaler"],
             "r2": model_data.get("r2"),
             "feature_names": model_data["feature_names"],
-            "feature_coefs": model_data.get("feature_coefs",{}),
+            "feature_coefs": model_data.get("feature_coefs", {}),
             "model_type": model_data.get("model_type"),
             "alpha": model_data.get("alpha")
         }
@@ -77,11 +72,11 @@ def train_endpoint(config:TrainConfig):
         # 1. 執行重新訓練並儲存模型
         res = train_and_save_model(
             test_size=config.test_size,
-            random_state= config.random_state,
-            model_type= config.model_type,
+            random_state=config.random_state,
+            model_type=config.model_type,
             alpha=config.alpha
         )
-         # 2. 線上重新載入最新模型狀態至全域變數
+        # 2. 線上重新載入最新模型狀態至全域變數
         load_model_state()
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"線上訓練失敗: {str(e)}")
@@ -104,14 +99,8 @@ def predict_endpoint(payload:SalaryInput):
     predicted_salary = float(model.predict(X_scaled)[0])
     return SalaryOutput(
         predicted_salary=predicted_salary,
-        estimated_annual_salary= predicted_salary * 14
+        estimated_annual_salary=predicted_salary * 14
     )
-    
+
 if __name__ == "__main__":
     uvicorn.run("app:app", reload=True)
-
-
-
-
-
-    

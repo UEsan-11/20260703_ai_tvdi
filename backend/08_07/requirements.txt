@@ -1,0 +1,10 @@
+fastapi
+uvicorn
+gradio
+requests
+pandas
+numpy
+pillow
+joblib
+scikit-learn
+pydantic

@@ -2,8 +2,10 @@ import os
 import pandas as pd
 import time
 import joblib
+import psycopg2
+from dotenv import load_dotenv
 from pandas import DataFrame
-from sklearn.preprocessing import OrdinalEncoder,  OneHotEncoder
+from sklearn.preprocessing import OrdinalEncoder, OneHotEncoder
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from sklearn.linear_model import LinearRegression, Ridge, Lasso
@@ -16,6 +18,7 @@ def train_and_save_model(
 ) -> dict:
     """
     訓練線性迴歸模型 (支援多元線性迴歸、Lasso 迴歸與 Ridge 嶺迴歸) 以預測薪資，
+    訓練資料源自 Render 雲端 PostgreSQL 資料庫的 salary_data2 資料表，
     並將模型與預處理器序列化儲存。
     
     參數:
@@ -27,13 +30,28 @@ def train_and_save_model(
     回傳:
         包含訓練指標、權重與花費時間的字典。
     """
-    # 取得csv的絕對路徑
-    current_dir = os.path.dirname(os.path.abspath(__file__))    
-    csv_path:str = os.path.join(current_dir, "Salary_Data2.csv")
-    if not os.path.exists(csv_path):
-        raise FileNotFoundError(f"找不到數據集檔案: {csv_path}")
+    # 載入 .env 環境變數
+    load_dotenv()
+    database_url = os.getenv("DATABASE_URL")
+    if not database_url:
+        raise ValueError("找不到 DATABASE_URL，請確認 backend/08_07/.env 檔案存在且寫入連線字串！")
 
-    data:DataFrame = pd.read_csv(csv_path)
+    print("正在連線至 Render PostgreSQL 資料庫擷取訓練資料...")
+    try:
+        conn = psycopg2.connect(database_url)
+        cursor = conn.cursor()
+        query = 'SELECT "YearsExperience", "EducationLevel", "City", "Salary" FROM salary_data2;'
+        cursor.execute(query)
+        rows = cursor.fetchall()
+        colnames = [desc[0] for desc in cursor.description]
+        cursor.close()
+        conn.close()
+        
+        data: DataFrame = pd.DataFrame(rows, columns=colnames)
+        print(f"[成功] 從 PostgreSQL 載入 {len(data)} 筆訓練資料！")
+    except Exception as e:
+        raise RuntimeError(f"從 PostgreSQL 資料庫讀取資料失敗: {e}")
+
     # 開始的時間
     start_time:float = time.time()
     # ----------------------------------------------------
@@ -47,9 +65,6 @@ def train_and_save_model(
     # -----------------------------------------------------
     # 2. 建立並擬合 OneHotEncoder (城市：城市A, 城市B, 城市C)
     # -----------------------------------------------------
-    from sklearn.preprocessing import OneHotEncoder
-    #display(data['City'].unique())
-    
     ohe = OneHotEncoder(sparse_output=False, handle_unknown='ignore')
     ohe.fit(pd.DataFrame([["城市A"], ["城市B"], ["城市C"]], columns=["City"]))
     city_encoded = ohe.transform(data[['City']])
@@ -63,7 +78,7 @@ def train_and_save_model(
     
     # 切分訓練集與測試集
     X_train, X_test, y_train, y_test = train_test_split(
-    X, y, test_size = test_size, random_state = random_state
+        X, y, test_size = test_size, random_state = random_state
     )
     
     # 特徵標準化 (對所有特徵進行)
@@ -102,27 +117,28 @@ def train_and_save_model(
         name: float(coef) for name, coef in zip(feature_names, coefs)
     }
     model_data = {
-    "model": model,
-    "oe": oe,
-    "ohe": ohe,
-    "scaler": scaler,
-    "r2": float(r2),
-    "coef": [float(c) for c in coefs],
-    "intercept": float(intercept),
-    "feature_names": feature_names,
-    "feature_coefs": feature_coefs,
-    "model_type": model_type_clean,
-    "alpha": float(alpha),
-    "train_time": float(train_time),
-    "test_size": test_size,
-    "random_state": random_state
+        "model": model,
+        "oe": oe,
+        "ohe": ohe,
+        "scaler": scaler,
+        "r2": float(r2),
+        "coef": [float(c) for c in coefs],
+        "intercept": float(intercept),
+        "feature_names": feature_names,
+        "feature_coefs": feature_coefs,
+        "model_type": model_type_clean,
+        "alpha": float(alpha),
+        "train_time": float(train_time),
+        "test_size": test_size,
+        "random_state": random_state
     }
     
+    current_dir = os.path.dirname(os.path.abspath(__file__))
     model_filename = os.path.join(current_dir, "salary_model.joblib")
     print(f"正在將模型、預處理器與元數據序列化並儲存至 {model_filename}...")
-    joblib.dump(model_data,model_filename)
+    joblib.dump(model_data, model_filename)
     print("模型儲存成功！")
-    return{
+    return {
         "status": "success",
         "r2": float(r2),
         "coef": [float(c) for c in coefs],
@@ -131,16 +147,8 @@ def train_and_save_model(
         "alpha": float(alpha),
         "feature_coefs": feature_coefs,
         "train_time": float(train_time),
-        "message":f"{actual_model_name} 模型訓練完成並儲存成功！"
+        "message": f"{actual_model_name} 模型訓練完成並儲存成功！"
     }
 
 if __name__ == "__main__":
     train_and_save_model()
-
-
-    
-   
-   
-
-
-

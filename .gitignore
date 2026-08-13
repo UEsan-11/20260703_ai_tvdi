@@ -150,3 +150,11 @@ cython_debug/
 *.swp
 *.swo
 *~
+
+# agent
+
+.agents/
+.gemini
+.pi
+.mcp.json
+opencode.json

@@ -50,3 +50,20 @@ https://www.youtube.com/watch?v=xqfuFnYcHRs
 2026_08_07_上午
 https://meet.google.com/zaj-dyxf-ytx
 
+2026_08_07_下午
+https://www.youtube.com/watch?v=wnS5WjnsN8o
+
+2026_08_12_上午
+https://www.youtube.com/watch?v=BtjkHJbJfF8
+
+2026_08_12_下午
+https://www.youtube.com/watch?v=Z8Tg8ZQvRL4
+
+2026_08_13_上午
+https://www.youtube.com/watch?v=wp5Zu-7TNns
+
+
+
+
+
+
