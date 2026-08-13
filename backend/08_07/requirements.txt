@@ -1,10 +1,26 @@
+# Web Framework & API
 fastapi
 uvicorn
-gradio
-requests
+pydantic
+
+# Machine Learning & Data Processing
 pandas
 numpy
-pillow
-joblib
 scikit-learn
-pydantic
+joblib
+
+# Database & Environment
+psycopg2-binary
+python-dotenv
+
+# Frontend / UI & HTTP Client
+gradio
+requests
+
+
+gradio
+requests
+
+pillow
+
+
