@@ -86,7 +86,7 @@
 - 在專案根目錄建立 `.env` 檔案，內容範例：
 
   ```env
-  DATABASE_URL=postgresql://使用者:密碼@host:5432/dbname
+  POSTGRES_URL=postgresql://使用者:密碼@host:5432/dbname
   ```
 
 - 建立 `example.env` 作為模板（只含欄位名稱與占位值，不含真實密碼），方便別人複製。
@@ -97,7 +97,7 @@
 - 提供一份可執行的 `connect_db.py` 完整範例，包含：
   1. 匯入 `psycopg2`、`os`、`dotenv`。
   2. `load_dotenv()` 載入 `.env`。
-  3. `os.getenv("DATABASE_URL")` 取得連線字串。
+  3. `os.getenv("POSTGRES_URL")` 取得連線字串。
   4. 用 `psycopg2.connect()` 建立連線。
   5. 建立 cursor 執行 `SELECT version();` 驗證資料庫連線成功。
   6. 執行 SQL 查詢資料表筆數（例如：`SELECT COUNT(*) FROM salary_data2;` 或讀取 rows 後印出資料筆數）。
@@ -115,7 +115,7 @@
 |---|---|---|
 | `psycopg2.OperationalError: connection failed` | 連線字串錯誤、主機不通、密碼錯誤 | 檢查 `.env` 拼字、External Database URL 是否複製完整 |
 | `NameError: name 'load_dotenv' is not defined` | 忘了安裝或匯入 `python-dotenv` | `uv add python-dotenv`，確認 import 正確 |
-| `KeyError` / 取到 `None` | `DATABASE_URL` 變數名稱打錯 | 確認 `.env` 的變數名稱與程式碼一致、檔案在同一層資料夾 |
+| `KeyError` / 取到 `None` | `POSTGRES_URL` 變數名稱打錯 | 確認 `.env` 的變數名稱與程式碼一致、檔案在同一層資料夾 |
 | SSL 相關錯誤 | Render 強制要求 SSL | 於連線字串加上 `?sslmode=require` |
 
 ---
@@ -156,7 +156,7 @@
 - [ ] `example.env` 模板
 - [ ] `.gitignore` 內容（`.env`、`.env.*`）
 - [ ] `load_dotenv()` 用法
-- [ ] `os.getenv("DATABASE_URL")` 用法
+- [ ] `os.getenv("POSTGRES_URL")` 用法
 - [ ] `psycopg2.connect()` 用法
 - [ ] `cursor.execute("SELECT version();")` 驗證
 - [ ] 執行 SQL 查詢並顯示資料表總筆數（如 `SELECT COUNT(*)` 或 `len(rows)`）

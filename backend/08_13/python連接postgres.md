@@ -118,7 +118,7 @@ uv add python-dotenv
 在專案根目錄（`backend/08_13/`）用 VS Code 或記事本新建一個檔名為 `.env` 的檔案，內容：
 
 ```env
-DATABASE_URL=postgresql://你的使用者:你的密碼@你的主機:5432/你的資料庫名稱
+POSTGRES_URL=postgresql://你的使用者:你的密碼@你的主機:5432/你的資料庫名稱
 ```
 
 把 `你的使用者`、`你的密碼` 等換成第 3 節複製下來的 **External Database URL** 整串內容。
@@ -133,7 +133,7 @@ DATABASE_URL=postgresql://你的使用者:你的密碼@你的主機:5432/你的�
 再建立一個 `example.env`，內容只放欄位名稱和占位值（**不含真實密碼**），方便別人複製成自己的 `.env`：
 
 ```env
-DATABASE_URL=postgresql://使用者名稱:密碼@主機位置:5432/資料庫名稱
+POSTGRES_URL=postgresql://使用者名稱:密碼@主機位置:5432/資料庫名稱
 ```
 
 這樣萬一有人拿到你的專案，只要 `cp example.env .env` 再填上自己的資料即可。
@@ -163,19 +163,19 @@ import os                                   # 讀取作業系統的環境變數
 import psycopg2                             # PostgreSQL 連線驅動
 from dotenv import load_dotenv              # 讀取 .env 檔案的工具
 
-# 1. 讀取 .env 檔案（讓 os.getenv 找得到 DATABASE_URL）
+# 1. 讀取 .env 檔案（讓 os.getenv 找得到 POSTGRES_URL）
 load_dotenv()
 
 # 2. 從環境變數取得連線字串
-database_url = os.getenv("DATABASE_URL")
+postgres_url = os.getenv("POSTGRES_URL")
 
 # 3. 檢查有沒有讀到（安全起見）
-if database_url is None:
-    raise SystemExit("找不到 DATABASE_URL，請確認 .env 檔案存在且變數名稱正確！")
+if postgres_url is None:
+    raise SystemExit("找不到 POSTGRES_URL，請確認 .env 檔案存在且變數名稱正確！")
 
 try:
     # 4. 建立連線
-    conn = psycopg2.connect(database_url)
+    conn = psycopg2.connect(postgres_url)
     print("✅ 連線成功！")
 
     # 5. 建立 cursor（可以想像成「指揮員」，幫你送 SQL 指令給資料庫）
@@ -201,8 +201,8 @@ except psycopg2.Error as e:
 | 行 | 在做什麼 |
 |---|---|
 | `load_dotenv()` | 把 `.env` 的內容載入，程式才找得到變數 |
-| `os.getenv("DATABASE_URL")` | 取出 `.env` 裡 `DATABASE_URL` 的值（整串連線字串） |
-| `psycopg2.connect(database_url)` | 拿連線字串去跟資料庫「打招呼」，成功就建立連線 |
+| `os.getenv("POSTGRES_URL")` | 取出 `.env` 裡 `POSTGRES_URL` 的值（整串連線字串） |
+| `psycopg2.connect(postgres_url)` | 拿連線字串去跟資料庫「打招呼」，成功就建立連線 |
 | `cursor.execute(...)` | 送 SQL 指令給資料庫執行 |
 | `cursor.close()` / `conn.close()` | 用完關閉，避免資源被占用 |
 
@@ -238,18 +238,18 @@ PostgreSQL 版本： PostgreSQL 16.x on x86_64-...
 |---|---|---|
 | `psycopg2.OperationalError: connection failed` | 連線字串錯誤、主機不通或密碼錯誤 | 回到 Render 重新複製完整的 **External Database URL**，確認 `.env` 沒有打錯字、沒有多餘空格 |
 | `NameError: name 'load_dotenv' is not defined` | 忘了安裝或匯入 `python-dotenv` | 執行 `uv add python-dotenv`，並確認程式裡有 `from dotenv import load_dotenv` |
-| 印出 `None` 或 `找不到 DATABASE_URL` | 變數名稱打錯，或 `.env` 不在同一層資料夾 | 確認 `.env` 的變數名稱與程式碼都是 `DATABASE_URL`，且 `.env` 與 `connect_db.py` 放在同一層 |
+| 印出 `None` 或 `找不到 POSTGRES_URL` | 變數名稱打錯，或 `.env` 不在同一層資料夾 | 確認 `.env` 的變數名稱與程式碼都是 `POSTGRES_URL`，且 `.env` 與 `connect_db.py` 放在同一層 |
 | `SSL connection error` | Render 強制要求 SSL 加密連線 | 在連線字串最後加上 `?sslmode=require`（見下方範例） |
 
 需要 SSL 時的連線字串範例：
 
 ```env
-DATABASE_URL=postgresql://使用者:密碼@主機:5432/資料庫?sslmode=require
+POSTGRES_URL=postgresql://使用者:密碼@主機:5432/資料庫?sslmode=require
 ```
 
 ### 除錯小技巧
 
-- 在 `connect_db.py` 的第一行 `load_dotenv()` 之後，暫時加上 `print(database_url)` 確認讀到的值是不是正確的連線字串（確定後再刪掉這行，避免印出密碼）。
+- 在 `connect_db.py` 的第一行 `load_dotenv()` 之後，暫時加上 `print(postgres_url)` 確認讀到的值是不是正確的連線字串（確定後再刪掉這行，避免印出密碼）。
 
 ---
 

@@ -3,19 +3,19 @@ import os                                   # 讀取作業系統的環境變數
 import psycopg2                             # PostgreSQL 連線驅動
 from dotenv import load_dotenv              # 讀取 .env 檔案的工具
 
-# 1. 讀取 .env 檔案（讓 os.getenv 找得到 DATABASE_URL）
+# 1. 讀取 .env 檔案（讓 os.getenv 找得到 POSTGRES_URL）
 load_dotenv()
 
 # 2. 從環境變數取得連線字串
-database_url = os.getenv("DATABASE_URL")
+postgres_url = os.getenv("POSTGRES_URL")
 
 # 3. 檢查有沒有讀到（安全起見）
-if database_url is None:
-    raise SystemExit("找不到 DATABASE_URL，請確認 .env 檔案存在且變數名稱正確！")
+if postgres_url is None:
+    raise SystemExit("找不到 POSTGRES_URL，請確認 .env 檔案存在且變數名稱正確！")
 
 try:
     # 4. 建立連線
-    conn = psycopg2.connect(database_url)
+    conn = psycopg2.connect(postgres_url)
     print("✅ 連線成功！")
 
     # 5. 建立 cursor（可以想像成「指揮員」，幫你送 SQL 指令給資料庫）

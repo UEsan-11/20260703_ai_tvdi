@@ -32,13 +32,13 @@ def train_and_save_model(
     """
     # 載入 .env 環境變數
     load_dotenv()
-    database_url = os.getenv("DATABASE_URL")
-    if not database_url:
-        raise ValueError("找不到 DATABASE_URL，請確認 backend/08_07/.env 檔案存在且寫入連線字串！")
+    postgres_url = os.getenv("POSTGRES_URL") or os.getenv("DATABASE_URL")
+    if not postgres_url:
+        raise ValueError("找不到 POSTGRES_URL，請確認 backend/08_07/.env 檔案存在且寫入連線字串！")
 
     print("正在連線至 Render PostgreSQL 資料庫擷取訓練資料...")
     try:
-        conn = psycopg2.connect(database_url)
+        conn = psycopg2.connect(postgres_url)
         cursor = conn.cursor()
         query = 'SELECT "YearsExperience", "EducationLevel", "City", "Salary" FROM salary_data2;'
         cursor.execute(query)

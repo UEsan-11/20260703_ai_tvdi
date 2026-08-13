@@ -22,7 +22,7 @@
 
 1. **套件管理約束**：必須全面使用 **uv** 作為套件管理工具（例如 `uv add`、`uv run`），嚴禁使用 `pip install` 或傳統 `venv`。
 2. **語言規範**：所有說明與註解必須使用**繁體中文**。
-3. **敏感資訊保護**：資料庫連線字串必須儲存於 `.env` 的 `DATABASE_URL` 變數中，嚴禁將連線密碼硬編碼（Hardcode）於 Python 程式碼中。
+3. **敏感資訊保護**：資料庫連線字串必須儲存於 `.env` 的 `POSTGRES_URL` 變數中，嚴禁將連線密碼硬編碼（Hardcode）於 Python 程式碼中。
 
 ---
 
@@ -56,7 +56,7 @@ Sub-agent 必須依序執行以下 5 大步驟：
 
 1. **確認 `.env` 設定檔**：
    - 確認 `backend/08_07/.env` 已存在（若無則從 `backend/08_13/.env` 複製）。
-   - 確認 `backend/08_07/.env` 包含 `DATABASE_URL` 環境變數（格式：`postgresql://elyse:***@dpg-d9tuqi7qj5pc738hnsa0-a.singapore-postgres.render.com/tvdi_oug1?sslmode=require`）。
+   - 確認 `backend/08_07/.env` 包含 `POSTGRES_URL` 環境變數（格式：`postgresql://elyse:***@dpg-d9tuqi7qj5pc738hnsa0-a.singapore-postgres.render.com/tvdi_oug1?sslmode=require`）。
 2. **檢查並安裝套件**：
    - 進入 `backend/08_07/` 目錄。
    - 使用 uv 安裝資料庫連線與環境變數相關套件：
@@ -73,7 +73,7 @@ Sub-agent 必須依序執行以下 5 大步驟：
 2. **新增 PostgreSQL 資料庫載入邏輯**：
    - 引入 `psycopg2` 與 `from dotenv import load_dotenv`。
    - 執行 `load_dotenv()` 載入 `.env`。
-   - 取得 `database_url = os.getenv("DATABASE_URL")`，若不存在則拋出明確錯誤提示。
+   - 取得 `postgres_url = os.getenv("POSTGRES_URL")`，若不存在則拋出明確錯誤提示。
    - 參考 `backend/08_13/connect_db.py` 的連線模式：
      ```python
      import os
@@ -94,12 +94,12 @@ Sub-agent 必須依序執行以下 5 大步驟：
          alpha: float = 1.0
      ) -> dict:
          load_dotenv()
-         database_url = os.getenv("DATABASE_URL")
-         if not database_url:
-             raise ValueError("找不到 DATABASE_URL，請確認 backend/08_07/.env 檔案存在！")
+         postgres_url = os.getenv("POSTGRES_URL")
+         if not postgres_url:
+             raise ValueError("找不到 POSTGRES_URL，請確認 backend/08_07/.env 檔案存在！")
 
          print("正在連線至 Render PostgreSQL 資料庫擷取訓練資料...")
-         conn = psycopg2.connect(database_url)
+         conn = psycopg2.connect(postgres_url)
          cursor = conn.cursor()
          
          # 讀取 salary_data2 資料表
@@ -155,7 +155,7 @@ Sub-agent 必須依序執行以下 5 大步驟：
 
 Sub-agent 必須逐項核對以下條件，全數通過才視為完成任務：
 
-- [x] `backend/08_07/.env` 已建立且包含有效的 `DATABASE_URL`。
+- [x] `backend/08_07/.env` 已建立且包含有效的 `POSTGRES_URL`。
 - [x] `backend/08_07/` 已安裝 `psycopg2-binary` 與 `python-dotenv`。
 - [x] `train_save.py` 完全移除對 `Salary_Data2.csv` 的依賴，改為從 Render PostgreSQL 的 `salary_data2` 資料表讀取。
 - [x] 使用 `uv run python train_save.py` 可順利完成模型訓練並更新 `salary_model.joblib`。
@@ -189,7 +189,7 @@ Sub-agent 必須逐項核對以下條件，全數通過才視為完成任務：
 
 | 評估面向 | 審查結果 | 詳細說明 |
 |---|---|---|
-| **資安與密碼保護** | 🟢 優良 (Passed) | 敏感資訊（連線密碼）完全自程式碼分離，統一由 `backend/08_07/.env` 的 `DATABASE_URL` 變數安全管理。 |
+| **資安與密碼保護** | 🟢 優良 (Passed) | 敏感資訊（連線密碼）完全自程式碼分離，統一由 `backend/08_07/.env` 的 `POSTGRES_URL` 變數安全管理。 |
 | **資料庫存取規範** | 🟢 優良 (Passed) | 使用 `psycopg2.connect()` 連線，SQL 語法正確使用雙引號引號標示大小寫敏感之欄位名稱（`"YearsExperience", "EducationLevel", "City", "Salary"`），且正確釋放 cursor 與 connection 資源。 |
 | **例外處理與穩定度** | 🟢 優良 (Passed) | 針對 `.env` 變數缺失與 SQL 讀取失敗設定明確的 `ValueError` 與 `RuntimeError` 捕捉區塊。 |
 | **跨平台 Console 相容性** | 🟢 修正完成 (Passed) | 排除特種 Emoji（如 `✅`）對 Windows Standard Code Page (cp950) 造成的 `UnicodeEncodeError`，統一採用標準標籤（如 `[成功]`），確保在任何作業系統終端機皆能穩定輸出。 |
